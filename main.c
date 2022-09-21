@@ -33,7 +33,7 @@ int numItmesOnScreen;
 int numOfItemsInMenu;
 char **menuItems;
 
-int main(){
+int main(int argc, char *argv[]){
 	
 	setlocale(LC_ALL, "");
 	init_curses();
@@ -50,6 +50,16 @@ int main(){
 	refresh();
 	
 	//get files
+	if (argc == 2){
+		char* dir = argv[1];
+		if (chdir(dir) == -1){
+			char* err = "Can't open %s directory";
+			int size = snprintf(NULL, 0, err, dir);
+			char errString[size+1];
+			snprintf(errString, sizeof(errString), err, dir);
+			logger("ERROR", errString);
+		}
+	}
 	getFiles();
 	int selectedItemNum = 0;
 
@@ -89,18 +99,15 @@ int main(){
 			if (selectedItemNum > numItmesOnScreen){
 				if ( i == numItmesOnScreen){
 					wattron(win,COLOR_PAIR(1));
-					wattron(win,A_BOLD);
 				}
 				mvwprintw(win, 2+i, 3, "%s", menuItems[i + (selectedItemNum-numItmesOnScreen)]);
 			} else {
 				if ( i == selectedItemNum){
-					wattron(win,A_BOLD);
 					wattron(win,COLOR_PAIR(1));
 				}
 				mvwprintw(win, 2+i, 3, "%s", menuItems[i]);
 			}
 			wattroff(win,COLOR_PAIR(1));
-			wattroff(win,A_BOLD);
 		}
 		wrefresh(win);
 
@@ -108,9 +115,7 @@ int main(){
 		char fileStatString[sizeStatBuf];
 		getStatString(menuItems[selectedItemNum], fileStatString);
 		mvwprintw(statWin, 0,1, "%s", fileStatString);
-		//mvwaddwstr(statWin, 0,1, (wchar_t*)menuItems[selectedItemNum]);
 		wrefresh(statWin);
-		logger("log", menuItems[selectedItemNum]);
 		ch = getch();
 		wclear(statWin);
 		wclear(win);
@@ -182,7 +187,7 @@ int getStatString(const char* filename, char* buf){
 	struct stat fileStat;
 	if (stat(filename, &fileStat) < 0){
 		//Error while getting stats
-		return -1;
+		return 0;
 	}
 	// drwxr-xr-x  4.0K
 	int i = 0;

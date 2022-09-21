@@ -1,5 +1,5 @@
 cf: main.c
-	gcc -lncursesw -o cf main.c
+	gcc -o cf main.c -lncursesw
 
 run: cf
 	./cf
